@@ -1,0 +1,104 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
+
+# Import data (Make sure to parse dates. Consider setting index column to 'date'.)
+df = pd.read_csv("fcc-forum-pageviews.csv", index_col = 'date', parse_dates = True)
+
+# Clean data by excluding when the page views were in the top 2.5% of the dataset or bottom 2.5% of the dataset
+df = df[
+    (df.value >= df.value.quantile(0.025)) &
+    (df.value <= df.value.quantile(0.975))]
+
+
+## DAILY PAGE VIEWS
+# Draw line plot
+fig, ax = plt.subplots(figsize = (15, 5))
+ax.plot(df.index, df.value, linestyle = "solid", color = "red")
+ax.set(xlabel = "Date", ylabel = "Page Views"
+        , title = "Daily freeCodeCamp Forum Page Views 5/2016-12/2019")
+
+# Save image and return fig 
+fig.savefig('line_plot.png')
+plt.show()
+
+
+### AVERAGE MONTHLY PAGE VIEWS
+# Copy and modify data for monthly bar plot
+df_bar = df.copy()
+df_bar["month"] = df_bar.index.month     # Extract the month from index (1-12)
+df_bar["year"] = df_bar.index.year
+df_bar = df_bar.groupby(["year", "month"]).value.mean()
+df_bar = df_bar.reset_index().rename(columns={"value": "Average Page Views"})
+df_bar["month"] = df_bar["month"].astype(str)  # Convert months to strings for categorical grouping
+#print(df_bar)
+
+# Map month numbers to names
+month_names = {
+    '1': 'January', '2': 'February', '3': 'March', '4': 'April',
+    '5': 'May', '6': 'June', '7': 'July', '8': 'August',
+    '9': 'September', '10': 'October', '11': 'November', '12': 'December'
+}
+
+# Rename months in df_bar
+df_bar['month'] = df_bar['month'].map(month_names)
+month_order = list(month_names.values())
+
+# Pivot
+df_bar = df_bar.pivot(index='year', columns='month', values='Average Page Views')[month_order]
+
+# Create figure and axes
+fig, ax = plt.subplots(figsize=(10, 10))  
+
+# Create the grouped bar plot
+#sns.barplot(data=df_bar, x="year", y="Average Page Views", hue="month", ax=ax)
+df_bar.plot(kind='bar', ax=ax)
+
+# Set labels and title
+ax.set_xlabel("Years")
+ax.set_ylabel("Average Page Views")
+
+# Adjust legend title for clarity
+ax.legend(title = "Months", loc = "upper left")
+
+# Save image and return fig (don't change this part)
+fig.savefig('bar_plot.png')
+plt.show()
+
+
+### BOXPLOTS FOR YEARLY AND MONTHLY PAGE VIEWS
+# Prepare data for box plots (this part is done!)
+df_box = df.copy()
+df_box.reset_index(inplace=True)
+df_box['year'] = [d.year for d in df_box.date]
+df_box['month'] = [d.strftime('%b') for d in df_box.date]
+
+
+# Draw box plots (using Seaborn)
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (15, 5))
+
+# First plot
+plt.subplot(1, 2, 1)
+sns.boxplot(data = df_box, x = "year", y = "value", hue = "year", ax = ax1)
+ax1.set_xlabel("Year")
+ax1.set_ylabel("Page Views")
+ax1.set_title("Year-wise Box Plot (Trend)")
+ax1.legend_.remove()
+
+# Second plot
+month_order = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+plt.subplot(1, 2 , 2)
+sns.boxplot(data = df_box, x = "month", y = "value", hue = "month", order = month_order, ax = ax2)
+ax2.set_xlabel("Month")
+ax2.set_ylabel("Page Views")
+ax2.set_title("Month-wise Box Plot (Seasonality)")
+
+#plt.tight_layout()
+# Save image and return fig (don't change this part)
+fig.savefig('box_plot.png')
+plt.show()
+
+
