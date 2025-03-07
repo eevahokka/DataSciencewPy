@@ -5,7 +5,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 
-# 1
+# 1: Load data
 df = pd.read_csv("medical_examination.csv")
 
 # 2: If a person's BMI (weight/sqrt(kilos)) > 25, record them as overweight (1)
@@ -31,6 +31,7 @@ fig = sns.catplot(df_cat, x = 'variable', hue = 'value', y = 'total', kind = 'ba
 
 # 9: Saving
 fig.savefig('catplot.png')
+plt.show()
 
 
 # HEAT MAP
@@ -62,3 +63,4 @@ sns.heatmap(corr, mask = mask, ax = ax, annot = True, fmt = ".1f")
 
 # 16: Saving. 
 fig.savefig('heatmap.png')
+plt.show()
