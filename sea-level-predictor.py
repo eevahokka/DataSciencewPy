@@ -1,0 +1,36 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy.stats import linregress
+import numpy as np
+
+# Read data from file
+df = pd.read_csv("epa-sea-level.csv")
+
+# Create scatter plot with Year on x-axis and Adjusted Sea Level on y-axis
+fig, ax = plt.subplots(figsize = (6, 6))
+ax = plt.scatter(df["Year"], df["CSIRO Adjusted Sea Level"])
+
+# Create first line of best fit.
+best_fit = linregress(df["Year"], df["CSIRO Adjusted Sea Level"])
+
+# Make the line continue to 2050 to predict sea level in 2050. Add to plot.
+years_pred = np.arange(1880, 2051)
+sea_level_pred = best_fit.intercept + best_fit.slope*years_pred
+ax = plt.plot(years_pred, sea_level_pred, "black", label = "Prediction given all years")
+
+# Create second line of best fit, only using data from 2020 onwards. Predict levels up to 2050 again.
+df_2000 = df.loc[df.Year >= 2000]
+#print(df_2000)
+updated_fit = linregress(df_2000["Year"], df_2000["CSIRO Adjusted Sea Level"])
+years_2000_pred = np.arange(2000, 2051)
+sea_level_2000_pred = updated_fit.intercept + updated_fit.slope*years_2000_pred
+ax = plt.plot(years_2000_pred, sea_level_2000_pred, "red", label = "Prediction given year 2000 onwards")
+
+# Add labels and title
+ax = plt.xlabel("Year")
+ax = plt.ylabel("Sea Level (inches)")
+ax = plt.title("Rise in Sea Level")
+ax = plt.legend(loc = "upper left", frameon = False)
+
+# Save plot and return data for testing (DO NOT MODIFY)
+plt.savefig('sea_level_plot.png')
